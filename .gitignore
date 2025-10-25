@@ -1,0 +1,48 @@
+# Archivos de entorno - ¡NUNCA SUBIR A GIT!
+.env
+
+# Base de datos local de desarrollo
+app.db
+*.sqlite
+*.sqlite3
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Caché y archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Artefactos de distribución y empaquetado
+build/
+dist/
+*.egg-info/
+
+# Archivos de configuración de IDEs y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Caché y reportes de testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Archivos temporales de Vim
+*.swp
+*.swo

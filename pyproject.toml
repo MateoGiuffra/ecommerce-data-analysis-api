@@ -1,0 +1,41 @@
+[project]
+name = "api-rest"
+version = "0.1.0"
+description = "API REST in Python using FastAPI, SQLAlchemy, Cookies in authentication and Clean Architecture"
+authors = [
+    {name = "MateoGiuffra",email = "matteogiuffrah40@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi (>=0.119.1,<0.120.0)",
+    "uvicorn (>=0.38.0,<0.39.0)",
+    "sqlalchemy (>=2.0.44,<3.0.0)",
+    "pydantic (>=2.12.3,<3.0.0)",
+    "bcrypt (>=5.0.0,<6.0.0)",
+    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
+    "pydantic-settings (>=2.11.0,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8.4.2,<9.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "alembic (>=1.17.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "poethepoet (>=0.37.0,<0.38.0)"
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+
+[tool.poe.tasks]
+dev = "uvicorn src.main:app --reload"
