@@ -8,5 +8,5 @@ class MetricsRepository(ABC):
         pass
     
     @abstractmethod
-    def get_raw_transactions(self, n_rows: Optional[int]) -> DataFrame:
+    def get_raw_transactions(self) -> DataFrame:
         pass

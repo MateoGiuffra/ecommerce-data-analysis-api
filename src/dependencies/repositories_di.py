@@ -21,4 +21,5 @@ from src.repositories.metrics_repository import MetricsRepository
 from src.repositories.impl.metrics_repository_local import MetricsRepositoryLocal
 
 def get_metrics_repository(_gspread_client: Client = Depends(get_gspread_client)) -> MetricsRepository:
-    return MetricsRepositoryLocal()
+    # return MetricsRepositoryLocal()
+    return MetricsRepositoryGspread(_gspread_client)

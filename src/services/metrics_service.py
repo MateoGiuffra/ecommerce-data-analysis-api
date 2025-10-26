@@ -19,7 +19,8 @@ class MetricsService:
         self.unit_price: str = "unitprice"
         self.customer_id: str = "customerid"
         self.country: str = "country"
-
+        self.total_price: str = "total_price"
+        
     def _clean_and_convert_to_numeric(self, series: pd.Series) -> Series:
         """
         Cleans a pandas Series by removing commas and stripping whitespace,
@@ -41,7 +42,7 @@ class MetricsService:
         df[self.unit_price] = self._clean_and_convert_to_numeric(df[self.unit_price])
         df[self.invoice_date] = pd.to_datetime(df[self.invoice_date])
 
-        df['total_price'] = df[self.quantity] * df[self.unit_price]
+        df[self.total_price] = df[self.quantity] * df[self.unit_price]
 
         df = df.set_index(self.invoice_date)
         return df
@@ -66,7 +67,7 @@ class MetricsService:
         df: DataFrame = self._get_clean_data_frame()
         
         return KPIsSummary(
-            total_revenue=float(df['total_price'].sum()),
+            total_revenue=float(df[self.total_price].sum()),
             total_products_sold=int(df[self.quantity].sum()),
             average_total_products_sold=float(df[self.quantity].mean())
         )
@@ -78,7 +79,7 @@ class MetricsService:
         resampler: DatetimeIndexResampler = df.resample(serie_type.get_resample_kind())
 
         summary = resampler.agg(
-            revenue=('total_price', 'sum'),
+            revenue=(self.total_price, 'sum'),
             products_sold=(self.quantity, 'sum')
         )
         
@@ -100,7 +101,7 @@ class MetricsService:
 
         top_countries_df = (
             df.groupby(self.country)
-            .agg(revenue=("total_price", "sum"), products_sold=(self.quantity, "sum"))
+            .agg(revenue=(self.total_price, "sum"), products_sold=(self.quantity, "sum"))
             .sort_values(
                 by=countries_params.sort_value.value, ascending=countries_params.ascending
             )
@@ -121,7 +122,7 @@ class MetricsService:
         top_country_df = (
             df[condition]
             .groupby(self.country)
-            .agg(revenue=("total_price", "sum"), products_sold=(self.quantity, "sum"))
+            .agg(revenue=(self.total_price, "sum"), products_sold=(self.quantity, "sum"))
             .sort_values(by="revenue", ascending=False)
             .head(1)
         )
