@@ -5,6 +5,9 @@ from src.schemas.error import ErrorDTO
 from fastapi import Request
 from jose import JWTError
 
+import logging
+logger = logging.getLogger(__name__)
+
 class JWTCookieAuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, public_paths: set, dispatch = None):
         super().__init__(app, dispatch)
@@ -29,7 +32,7 @@ class JWTCookieAuthMiddleware(BaseHTTPMiddleware):
                     ).model_dump()
             )
         except Exception as e:
-            print(f"Exception middleware: {e} \n type: {type(e)} \n tracer: {e.__traceback__.__str__}\n  ")
+            logger.error(f"Exception middleware: {e} \n type: {type(e)} \n tracer: {e.__traceback__.__str__}\n  ")
             return JSONResponse(
                 status_code=500,
                 content=ErrorDTO(

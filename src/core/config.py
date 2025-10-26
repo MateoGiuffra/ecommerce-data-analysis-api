@@ -18,5 +18,9 @@ class Settings(BaseSettings):
     SPREADSHEET_GID: str
     API_KEY: str
     TOKEN_URI: str
+    #cahce
+    CACHE_TTL_SECONDS: int = 3600
+    REDIS_URL: str = "redis://localhost:6379/9"
+    
 
 settings = Settings()
