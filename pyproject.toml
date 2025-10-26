@@ -1,5 +1,5 @@
 [project]
-name = "api-rest"
+name = "ecommerce-data-analysis-api"
 version = "0.1.0"
 description = "API REST in Python using FastAPI, SQLAlchemy, Cookies in authentication and Clean Architecture"
 authors = [
@@ -8,6 +8,10 @@ authors = [
 license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.12"
+packages = [
+    { include = "src", from = "." }
+]
+
 dependencies = [
     "fastapi (>=0.119.1,<0.120.0)",
     "uvicorn (>=0.38.0,<0.39.0)",
@@ -15,7 +19,9 @@ dependencies = [
     "pydantic (>=2.12.3,<3.0.0)",
     "bcrypt (>=5.0.0,<6.0.0)",
     "python-jose[cryptography] (>=3.5.0,<4.0.0)",
-    "pydantic-settings (>=2.11.0,<3.0.0)"
+    "pydantic-settings (>=2.11.0,<3.0.0)",
+    "pandas (>=2.3.3,<3.0.0)",
+    "gspread (>=6.2.1,<7.0.0)"
 ]
 
 
@@ -39,3 +45,6 @@ pythonpath = [
 
 [tool.poe.tasks]
 dev = "uvicorn src.main:app --reload"
+
+[tool.poetry]
+package-mode = false

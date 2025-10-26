@@ -29,7 +29,7 @@ class JWTCookieAuthMiddleware(BaseHTTPMiddleware):
                     ).model_dump()
             )
         except Exception as e:
-            print("Exception middleware: ", e, "type: ", type(e))
+            print(f"Exception middleware: {e} \n type: {type(e)} \n tracer: {e.__traceback__.__str__}\n  ")
             return JSONResponse(
                 status_code=500,
                 content=ErrorDTO(

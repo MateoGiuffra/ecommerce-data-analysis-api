@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from fastapi import Query
-from typing import List
+from typing import List, Generic, TypeVar
+
 
 class PaginationParams(BaseModel):
     page: int = Field(default=1, ge=1)
@@ -15,9 +16,11 @@ def get_pagination_params(
 ) -> PaginationParams:
     return PaginationParams(page=page, limit=limit)
 
-class PaginationResponse(BaseModel):
+ResultType = TypeVar("ResultType")
+
+class PaginationResponse(BaseModel, Generic[ResultType]):
     model_config = {"from_attributes": True}
-    results: List
+    results: List[ResultType]
     page: int
     limit: int
     total_pages: int

@@ -9,5 +9,14 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = False
     DEFAULT_PUBLIC_PATHS: set = {"/", "/docs", "/openapi.json"}
     SQLALCHEMY_DATABASE_URL: str = "sqlite:///./app.db"
+    GOOGLE_APPLICATION_CREDENTIALS: str
+    GOOGLE_PROJECT_ID: str
+    GOOGLE_PRIVATE_KEY_ID: str
+    GOOGLE_PRIVATE_KEY: str
+    GOOGLE_CLIENT_EMAIL: str
+    SPREADSHEET_ID: str
+    SPREADSHEET_GID: str
+    API_KEY: str
+    TOKEN_URI: str
 
 settings = Settings()

@@ -26,9 +26,9 @@ async def get_user_by_id(id:str, user_service: UserService = UserServiceDep) -> 
     user = user_service.get_user_by_id(id)
     return UserDTO.model_validate(user)
 
-@router.get("", status_code=status.HTTP_200_OK, response_model=PaginationResponse)
+@router.get("", status_code=status.HTTP_200_OK, response_model=PaginationResponse[UserDTO])
 async def list_users(user_service: UserService = UserServiceDep, params: PaginationParams = Depends(get_pagination_params)) -> list[UserDTO]:
-    page: PaginationResponse = user_service.list_users(params)
+    page: PaginationResponse[UserDTO] = user_service.list_users(params)
     page.results = [UserDTO.model_validate(user) for user in page.results]
     return page.model_dump()
 

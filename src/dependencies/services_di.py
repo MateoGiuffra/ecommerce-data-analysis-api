@@ -11,7 +11,7 @@ def get_user_service(user_repository: UserRepository = Depends(get_user_reposito
     return UserService(user_repository, cookie_service)
 
 
-#shorthand
+# Shorthand
 def get_injected_user_service(
     user_service: UserService = Depends(get_user_service)
 ) -> UserService:
@@ -21,3 +21,13 @@ def get_injected_user_service(
     en la declaración de la variable UserServiceDep.
     """
     return user_service
+
+# ----------------------------------------------------------------------
+# MetricsService
+# ----------------------------------------------------------------------
+from src.services.metrics_service import MetricsService
+from src.dependencies.repositories_di import get_metrics_repository
+from src.repositories.metrics_repository import MetricsRepository
+
+def get_metrics_service(metrics_repository: MetricsRepository = Depends(get_metrics_repository)) -> MetricsService:
+    return MetricsService(metrics_repository)
