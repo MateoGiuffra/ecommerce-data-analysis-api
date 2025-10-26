@@ -2,7 +2,7 @@ from src.routers import *
 from src.dependencies.services_di import get_user_service, get_injected_user_service
 from src.services.user_service import UserService
 from src.schemas.user import UserDTO
-from src.schemas.pagination import PaginationParams, get_pagination_params, PaginationResponse
+from src.schemas.pagination import PageParams, get_page_params, PageResponse
 
 router = APIRouter(
     prefix="/users",
@@ -26,9 +26,9 @@ async def get_user_by_id(id:str, user_service: UserService = UserServiceDep) -> 
     user = user_service.get_user_by_id(id)
     return UserDTO.model_validate(user)
 
-@router.get("", status_code=status.HTTP_200_OK, response_model=PaginationResponse[UserDTO])
-async def list_users(user_service: UserService = UserServiceDep, params: PaginationParams = Depends(get_pagination_params)) -> list[UserDTO]:
-    page: PaginationResponse[UserDTO] = user_service.list_users(params)
+@router.get("", status_code=status.HTTP_200_OK, response_model=PageResponse[UserDTO])
+async def list_users(user_service: UserService = UserServiceDep, params: PageParams = Depends(get_page_params)) -> list[UserDTO]:
+    page: PageResponse[UserDTO] = user_service.list_users(params)
     page.results = [UserDTO.model_validate(user) for user in page.results]
     return page.model_dump()
 

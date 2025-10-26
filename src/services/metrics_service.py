@@ -4,7 +4,9 @@ from pandas import DataFrame, Series
 from pandas.core.resample import DatetimeIndexResampler
 from src.schemas.metrics import KPIsSummary, Serie, SerieType, TopCountryRevenue, TopCountryRevenueParams
 from typing import List
-
+from src.exceptions.metrics_exceptions import CountryNotFoundException
+from src.exceptions.generic_exceptions import BadRequestException
+from src.schemas.pagination import PageParams, PageResponse
 
 class MetricsService:
     def __init__(self, metrics_repository: MetricsRepository):
@@ -109,5 +111,35 @@ class MetricsService:
             TopCountryRevenue(country=country, **row.to_dict())
             for country, row in top_countries_df.iterrows()
         ]
-
     
+    def get_top_country_by_name(self, country_name: str) -> TopCountryRevenue | None:
+        if country_name is None or country_name.strip() == "":
+            raise BadRequestException("Country name is required")
+
+        df: DataFrame = self._get_clean_data_frame()
+        condition = df[self.country] == country_name
+        top_country_df = (
+            df[condition]
+            .groupby(self.country)
+            .agg(revenue=("total_price", "sum"), products_sold=(self.quantity, "sum"))
+            .sort_values(by="revenue", ascending=False)
+            .head(1)
+        )
+        if top_country_df.empty:
+            raise CountryNotFoundException(country_name)
+        
+        return TopCountryRevenue(country=country_name, **top_country_df.iloc[0].to_dict())
+
+        
+    def get_page(self, page_params: PageParams) -> PageResponse:
+        df: DataFrame = self._get_clean_data_frame()
+        total_results = len(df)
+        total_pages = (total_results + page_params.limit - 1) // page_params.limit if total_results > 0 else 0
+        
+        return PageResponse(
+            results=df.iloc[page_params.offset:page_params.offset + page_params.limit].to_dict(orient="records"),
+            page=page_params.page,
+            limit=page_params.limit,
+            total_pages=total_pages,
+            total_results=total_results
+        )

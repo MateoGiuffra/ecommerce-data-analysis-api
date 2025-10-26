@@ -6,7 +6,7 @@ from src.repositories.impl.user_repository_sql_alchemy import UserRepository
 from src.services.cookie_service import CookieService
 from src.services.user_service import UserService
 from src.schemas.user import RegisterUserDTO, LoginUserDTO
-from src.schemas.pagination import PaginationParams, PaginationResponse
+from src.schemas.pagination import PageParams, PageResponse
 import bcrypt
 
 # --- Fixtures ---
@@ -197,13 +197,13 @@ def test_list_users_default_pagination(user_service: UserService, user_repositor
     user_repository_mock.get_users.return_value = [sample_user]
     user_repository_mock.get_count.return_value = 1
     
-    params = PaginationParams()
+    params = PageParams()
     response = user_service.list_users(params)
     
     user_repository_mock.get_users.assert_called_once_with(0, 10) # offset = (page-1)*limit
     user_repository_mock.get_count.assert_called_once()
     
-    assert isinstance(response, PaginationResponse)
+    assert isinstance(response, PageResponse)
     assert response.results == [sample_user]
     assert response.page == 1
     assert response.limit == 10
@@ -215,13 +215,13 @@ def test_list_users_custom_pagination(user_service: UserService, user_repository
     user_repository_mock.get_users.return_value = [sample_user]
     user_repository_mock.get_count.return_value = 10
     
-    params = PaginationParams(page=2, limit=5)
+    params = PageParams(page=2, limit=5)
     response = user_service.list_users(params)
     
     user_repository_mock.get_users.assert_called_once_with(5, 5) # offset = (2-1)*5 = 5
     user_repository_mock.get_count.assert_called_once()
     
-    assert isinstance(response, PaginationResponse)
+    assert isinstance(response, PageResponse)
     assert response.results == [sample_user]
     assert response.page == 2
     assert response.limit == 5
@@ -233,13 +233,13 @@ def test_list_users_empty_results(user_service: UserService, user_repository_moc
     user_repository_mock.get_users.return_value = []
     user_repository_mock.get_count.return_value = 0
     
-    params = PaginationParams()
+    params = PageParams()
     response = user_service.list_users(params)
     
     user_repository_mock.get_users.assert_called_once_with(0, 10)
     user_repository_mock.get_count.assert_called_once()
     
-    assert isinstance(response, PaginationResponse)
+    assert isinstance(response, PageResponse)
     assert response.results == []
     assert response.page == 1
     assert response.limit == 10

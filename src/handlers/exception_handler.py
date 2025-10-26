@@ -1,8 +1,9 @@
-from fastapi import Request, status, HTTPException
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from src.schemas.error import ErrorDTO
 from pydantic import ValidationError
+from src.exceptions.generic_exceptions import MyHTTPException
 
 
 class ExceptionHandler:
@@ -32,9 +33,9 @@ class ExceptionHandler:
             content=ErrorDTO(status_code=status_code, message=errors[0]['msg'], detail=[error["msg"] for error in errors]).model_dump(),
         )
     
-    async def http_fast_api_exception(self, _request: Request, exc: HTTPException):
+    async def http_fast_api_exception(self, _request: Request, exc: MyHTTPException):
         """
-        Http fast api exceptions manager.
+        Http my exceptions manager.(now extends from fast HTTPException)
         """
         return JSONResponse(
             status_code=exc.status_code,
