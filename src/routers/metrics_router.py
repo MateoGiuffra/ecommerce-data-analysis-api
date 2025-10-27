@@ -1,10 +1,8 @@
-from src.routers import *
+from fastapi import APIRouter, Depends
+from typing import List
 from src.dependencies.services_di import get_metrics_service
 from src.services.metrics_service import MetricsService
-from fastapi import APIRouter
 from src.schemas.pagination import PageParams, get_page_params, PageResponse
-from src.schemas.metrics import KPIsSummary, Serie, TopCountryRevenue
-from typing import List
 from src.schemas.metrics import *
 
 
@@ -35,4 +33,3 @@ async def get_top_country_by_name(country_name: str, metrics_service: MetricsSer
 async def get_page(metrics_service: MetricsService = Depends(get_metrics_service), page_params: PageParams = Depends(get_page_params)) -> PageResponse:
     page: PageResponse = await metrics_service.get_page(page_params)
     return page.model_dump()
-

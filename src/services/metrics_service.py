@@ -9,9 +9,10 @@ from src.exceptions.generic_exceptions import BadRequestException
 from src.schemas.pagination import PageParams, PageResponse
 from src.services.cache_service import CacheService
 from typing import Callable, Awaitable, Optional
+from src.aspects.caching import Caching
+from src.aspects.decorators import excluded_from_cache
 
-
-class MetricsService:
+class MetricsService(metaclass=Caching):
     def __init__(self, metrics_repository: MetricsRepository, cache_service: CacheService, cache_ttl_seconds: int):
         self.metrics_repository: MetricsRepository = metrics_repository
         self.invoice_no: str = "invoiceno"
@@ -23,10 +24,10 @@ class MetricsService:
         self.customer_id: str = "customerid"
         self.country: str = "country"
         self.total_price: str = "total_price"
+        
         self.cache_service = cache_service
         self.df_cache_key = "metrics:clean_dataframe"
         self.cache_ttl = cache_ttl_seconds
-        self._cached_get_df_func: Optional[Callable[[], DataFrame]] = None
         
     def _clean_and_convert_to_numeric(self, series: pd.Series) -> Series:
         """
@@ -38,31 +39,32 @@ class MetricsService:
             errors="coerce"
         ).fillna(0)
         return series.astype(float)
+
+
     
+    @excluded_from_cache
     def _get_clean_data_frame(self) -> Callable[[], Awaitable[DataFrame]]:
         """
         Returns a memoized, decorated, and cached version of the data fetching logic.
         The decorated function is created only once per service instance.
         """
-        if self._cached_get_df_func is None:
-            @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_ttl)
-            async def _fetch_and_clean_dataframe() -> DataFrame:
-                """This function contains the actual data processing logic."""
-                df: DataFrame = self.metrics_repository.get_raw_transactions()
-                if df.empty:
-                    return df
-                
-                df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
-                self._validate_columns(df)
-                df[self.quantity] = self._clean_and_convert_to_numeric(df[self.quantity])
-                df[self.unit_price] = self._clean_and_convert_to_numeric(df[self.unit_price])
-                df[self.invoice_date] = pd.to_datetime(df[self.invoice_date])
-                df[self.total_price] = df[self.quantity] * df[self.unit_price]
-                df = df.set_index(self.invoice_date)
+        @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_ttl)
+        async def _fetch_and_clean_dataframe() -> DataFrame:
+            """This function contains the actual data processing logic."""
+            df: DataFrame = self.metrics_repository.get_raw_transactions()
+            if df.empty:
                 return df
-            self._cached_get_df_func = _fetch_and_clean_dataframe
+            
+            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+            self._validate_columns(df)
+            df[self.quantity] = self._clean_and_convert_to_numeric(df[self.quantity])
+            df[self.unit_price] = self._clean_and_convert_to_numeric(df[self.unit_price])
+            df[self.invoice_date] = pd.to_datetime(df[self.invoice_date])
+            df[self.total_price] = df[self.quantity] * df[self.unit_price]
+            df = df.set_index(self.invoice_date)
+            return df
         
-        return self._cached_get_df_func
+        return _fetch_and_clean_dataframe
 
     def _validate_columns(self, df: DataFrame):
         required_columns = [

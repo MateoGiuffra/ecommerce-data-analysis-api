@@ -22,7 +22,8 @@ dependencies = [
     "pydantic-settings (>=2.11.0,<3.0.0)",
     "pandas (>=2.3.3,<3.0.0)",
     "gspread (>=6.2.1,<7.0.0)",
-    "redis[hiredis] (>=7.0.0,<8.0.0)"
+    "redis[hiredis] (>=7.0.0,<8.0.0)",
+    "loguru (==0.7.2)"
 ]
 
 

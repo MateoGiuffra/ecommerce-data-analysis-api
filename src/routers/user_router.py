@@ -1,6 +1,6 @@
-from src.routers import *
+from fastapi import APIRouter, Depends, Request, status
 from src.dependencies.services_di import get_user_service, get_injected_user_service
-from src.services.user_service import UserService
+from src.services.user.user_service import UserService
 from src.schemas.user import UserDTO
 from src.schemas.pagination import PageParams, get_page_params, PageResponse
 
@@ -18,19 +18,18 @@ async def delete_all(user_service: UserService = UserServiceDep):
 
 @router.get("/me", status_code=status.HTTP_200_OK, response_model=UserDTO)
 async def get_current_user(request: Request, user_service: UserService = UserServiceDep) -> UserDTO:
-    user = user_service.get_current_user(request)
-    return UserDTO.model_validate(user)
+    user = await user_service.get_current_user(request)
+    return UserDTO.model_validate(user, from_attributes=True)
 
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=UserDTO)
 async def get_user_by_id(id:str, user_service: UserService = UserServiceDep) -> UserDTO:
-    user = user_service.get_user_by_id(id)
-    return UserDTO.model_validate(user)
+    user = await user_service.get_user_by_id(id)
+    return UserDTO.model_validate(user, from_attributes=True)
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=PageResponse[UserDTO])
-async def list_users(user_service: UserService = UserServiceDep, params: PageParams = Depends(get_page_params)) -> list[UserDTO]:
-    page: PageResponse[UserDTO] = user_service.list_users(params)
-    page.results = [UserDTO.model_validate(user) for user in page.results]
-    return page.model_dump()
-
+async def list_users(user_service: UserService = UserServiceDep, params: PageParams = Depends(get_page_params)) -> PageResponse[UserDTO]:
+    page = await user_service.list_users(params)
+    page.results = [UserDTO.model_validate(user, from_attributes=True) for user in page.results]
+    return page
 
     

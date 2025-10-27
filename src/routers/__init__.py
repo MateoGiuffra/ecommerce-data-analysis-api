@@ -1,7 +1,7 @@
 # general imports to every file in this directory
 from fastapi import APIRouter
 from fastapi import status, APIRouter, Depends, Response, Request
-from src.core.decorators import public
+from src.aspects.decorators import public
 # imports to append APIRouters of dynamic way in the list routers
 import importlib
 from pathlib import Path
