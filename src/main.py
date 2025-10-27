@@ -8,7 +8,6 @@ from src.core.logging_config import setup_logging
 
 setup_logging()
 
-
 app = FastAPI(
     description="API REST",
     version="1.0.1",

@@ -13,7 +13,7 @@ from src.aspects.caching import Caching
 from src.aspects.decorators import excluded_from_cache
 
 class MetricsService(metaclass=Caching):
-    def __init__(self, metrics_repository: MetricsRepository, cache_service: CacheService, cache_ttl_seconds: int):
+    def __init__(self, metrics_repository: MetricsRepository, cache_service: CacheService, cache_df_ttl_seconds: int):
         self.metrics_repository: MetricsRepository = metrics_repository
         self.invoice_no: str = "invoiceno"
         self.stock_code: str = "stockcode"
@@ -27,7 +27,7 @@ class MetricsService(metaclass=Caching):
         
         self.cache_service = cache_service
         self.df_cache_key = "metrics:clean_dataframe"
-        self.cache_ttl = cache_ttl_seconds
+        self.cache_df_ttl = cache_df_ttl_seconds
         
     def _clean_and_convert_to_numeric(self, series: pd.Series) -> Series:
         """
@@ -48,7 +48,7 @@ class MetricsService(metaclass=Caching):
         Returns a memoized, decorated, and cached version of the data fetching logic.
         The decorated function is created only once per service instance.
         """
-        @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_ttl)
+        @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_df_ttl)
         async def _fetch_and_clean_dataframe() -> DataFrame:
             """This function contains the actual data processing logic."""
             df: DataFrame = self.metrics_repository.get_raw_transactions()

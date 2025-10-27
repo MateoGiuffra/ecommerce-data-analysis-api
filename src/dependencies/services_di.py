@@ -62,4 +62,4 @@ def get_auth_service(user_repository: UserRepository = Depends(get_user_reposito
 # ----------------------------------------------------------------------
 
 def get_metrics_service(metrics_repository: MetricsRepository = Depends(get_metrics_repository), cache_service: CacheService = Depends(get_cache_service)) -> MetricsService:
-    return MetricsService(metrics_repository, cache_service, cache_ttl_seconds=settings.CACHE_TTL_SECONDS)
+    return MetricsService(metrics_repository, cache_service, cache_ttl_seconds=settings.CACHE_DF_TTL_SECONDS)
