@@ -49,3 +49,4 @@ RUN chmod +x /app/entrypoint.sh
 # Set the entrypoint for the container
 # This allows us to specify the command (web, worker, beat) in Render's start command
 ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["web"]

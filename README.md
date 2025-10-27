@@ -1,6 +1,6 @@
 # FastAPI Ecommerce Data Analysis API
 
-A robust and scalable REST API built with FastAPI for e-commerce data analytics/analysis. It includes secure authentication, background tasks with Celery, high-performance caching with Redis, and a clean, production-ready architecture.
+A robust and scalable REST API built with FastAPI for e-commerce data analysis. It includes secure authentication, background tasks with Celery, high-performance caching with Redis, and a clean, production-ready architecture.
 
 ## ✨ Key Features
 
@@ -8,8 +8,8 @@ A robust and scalable REST API built with FastAPI for e-commerce data analytics/
 - **Clean Architecture**: Follows a clear separation of concerns with distinct layers for **Routers**, **Services**, and **Repositories**, making the codebase easy to maintain and extend.
 - **Secure Authentication**: Implements JWT-based authentication using secure **HttpOnly cookies** to protect against XSS attacks. Passwords are securely hashed using `bcrypt`.
 - **Database Management**: Uses **SQLAlchemy ORM** for database interactions and **Alembic** for handling database schema migrations.
-- **Asynchronous Background Tasks**: Utilizes **Celery** with a **Redis** broker to run tasks in the background, like pre-calentando el caché de datos.
-- **Performance Caching**: Implements a caching layer with **Redis** to store expensive computations (like DataFrames de Pandas) and API responses, drastically reducing response times.
+- **Asynchronous Background Tasks**: Utilizes **Celery** with a **Redis** broker to run tasks in the background, like pre-warming the data cache.
+- **Performance Caching**: Implements a caching layer with **Redis** to store expensive computations (like Pandas DataFrames) and API responses, drastically reducing response times.
 - **Data Analysis & Metrics**: Provides endpoints for analyzing e-commerce data, calculating KPIs, generating time series, and identifying top-performing countries.
 - **Dependency Injection**: Leverages FastAPI's powerful dependency injection system to manage dependencies and improve testability.
 - **Developer Tooling**: Uses **`poethepoet`** and **`honcho`** to simplify the local development workflow, allowing you to start the entire application stack (API, worker, scheduler) with a single command.
@@ -18,7 +18,7 @@ A robust and scalable REST API built with FastAPI for e-commerce data analytics/
 
 ---
 
-## 🚀 Puesta en Marcha
+## 🚀 Getting Started
 
 Follow these instructions to get a local copy up and running for development and testing.
 
@@ -47,14 +47,22 @@ Follow these instructions to get a local copy up and running for development and
     ```
     Now, fill in the variables in your new `.env` file:
     ```env
-    # Application settings
+    # --- Application & JWT Settings ---
     SECRET_KEY="your-super-secret-key-for-jwt"
     ALGORITHM="HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES=30
     COOKIE_SECURE=False # Set to True in production with HTTPS
 
-    # Database settings
+    # --- Database Settings ---
     DATABASE_URL="postgresql+psycopg2://user:password@localhost/dbname"
+
+    # --- Redis & Celery Settings ---
+    # URL for the main Redis instance (used for caching)
+    REDIS_URL="redis://localhost:6379/0"
+    # URL for the Celery message broker (can be the same Redis instance, different DB)
+    CELERY_BROKER_URL="redis://localhost:6379/1"
+    CELERY_RESULT_BACKEND="redis://localhost:6379/1"
+    CACHE_DF_TTL_SECONDS=3600 # Time-to-live for the dataframe cache (in seconds)
     ```
 
 4.  **Run database migrations:**
@@ -118,7 +126,7 @@ The project follows a structured and modular layout:
 
 ---
 
-## Endpoints
+## 🌐 Endpoints
 
 Here is a summary of the available API endpoints.
 
