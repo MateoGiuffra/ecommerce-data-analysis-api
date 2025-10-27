@@ -8,7 +8,7 @@ from src.exceptions.metrics_exceptions import CountryNotFoundException
 from src.exceptions.generic_exceptions import BadRequestException
 from src.schemas.pagination import PageParams, PageResponse
 from src.services.cache_service import CacheService
-from typing import Callable, Awaitable, Optional
+from typing import Callable, Awaitable
 from src.aspects.caching import Caching
 from src.aspects.decorators import excluded_from_cache
 
@@ -27,7 +27,7 @@ class MetricsService(metaclass=Caching):
         
         self.cache_service = cache_service
         self.df_cache_key = "metrics:clean_dataframe"
-        self.cache_df_ttl = cache_df_ttl_seconds
+        self.cache_df_ttl_seconds = cache_df_ttl_seconds
         
     def _clean_and_convert_to_numeric(self, series: pd.Series) -> Series:
         """
@@ -40,15 +40,12 @@ class MetricsService(metaclass=Caching):
         ).fillna(0)
         return series.astype(float)
 
-
-    
-    @excluded_from_cache
     def _get_clean_data_frame(self) -> Callable[[], Awaitable[DataFrame]]:
         """
         Returns a memoized, decorated, and cached version of the data fetching logic.
         The decorated function is created only once per service instance.
         """
-        @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_df_ttl)
+        @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_df_ttl_seconds)
         async def _fetch_and_clean_dataframe() -> DataFrame:
             """This function contains the actual data processing logic."""
             df: DataFrame = self.metrics_repository.get_raw_transactions()
@@ -65,6 +62,10 @@ class MetricsService(metaclass=Caching):
             return df
         
         return _fetch_and_clean_dataframe
+    
+    @excluded_from_cache
+    async def get_clean_data_frame(self) -> DataFrame:
+        return await self._get_clean_data_frame()()
 
     def _validate_columns(self, df: DataFrame):
         required_columns = [
@@ -82,8 +83,9 @@ class MetricsService(metaclass=Caching):
             raise KeyError(f"Missing required columns: {', '.join(missing_columns)}")
         
 
+
     async def get_kpi_summary(self) -> KPIsSummary:
-        df: DataFrame = await self._get_clean_data_frame()()
+        df: DataFrame = await self.get_clean_data_frame()
         
         return KPIsSummary(
             total_revenue=float(df[self.total_price].sum()),
@@ -93,7 +95,7 @@ class MetricsService(metaclass=Caching):
         
         
     async def get_series(self, serie_type: SerieType) -> List[Serie]:
-        df: DataFrame = await self._get_clean_data_frame()()
+        df: DataFrame = await self.get_clean_data_frame()
         
         resampler: DatetimeIndexResampler = df.resample(serie_type.get_resample_kind())
 
@@ -116,7 +118,7 @@ class MetricsService(metaclass=Caching):
     
     
     async def get_top_countries(self, countries_params: TopCountryRevenueParams) -> List[TopCountryRevenue]:
-        df: DataFrame = await self._get_clean_data_frame()()
+        df: DataFrame = await self.get_clean_data_frame()
 
         top_countries_df = (
             df.groupby(self.country)
@@ -136,7 +138,7 @@ class MetricsService(metaclass=Caching):
         if country_name is None or country_name.strip() == "":
             raise BadRequestException("Country name is required")
 
-        df: DataFrame = await self._get_clean_data_frame()()
+        df: DataFrame = await self.get_clean_data_frame()
         condition = df[self.country] == country_name
         top_country_df = (
             df[condition]
@@ -152,7 +154,7 @@ class MetricsService(metaclass=Caching):
 
         
     async def get_page(self, page_params: PageParams) -> PageResponse:
-        df: DataFrame = await self._get_clean_data_frame()()
+        df: DataFrame = await self.get_clean_data_frame()
         total_results = len(df)
         total_pages = (total_results + page_params.limit - 1) // page_params.limit if total_results > 0 else 0
         
