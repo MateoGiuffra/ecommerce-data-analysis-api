@@ -18,5 +18,13 @@ class Settings(BaseSettings):
     SPREADSHEET_GID: str
     API_KEY: str
     TOKEN_URI: str
+    # cache
+    CACHE_TTL_SECONDS: int = 300
+    CACHE_DF_TTL_SECONDS: int = 600
+    REDIS_URL: str = "redis://localhost:6379/0"
+    # celery
+    CELERY_BROKER_URL: str = 'redis://localhost:6379/1'
+    CELERY_RESULT_BACKEND: str = 'redis://localhost:6379/1'
+    
 
 settings = Settings()

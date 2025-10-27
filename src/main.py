@@ -4,6 +4,9 @@ from fastapi.routing import APIRoute
 from src.handlers import exception_handlers
 from src.core.middleware import JWTCookieAuthMiddleware
 from src.core.config import settings
+from src.core.logging_config import setup_logging
+
+setup_logging()
 
 app = FastAPI(
     description="API REST",

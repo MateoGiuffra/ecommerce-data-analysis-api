@@ -4,7 +4,7 @@ from fastapi import HTTPException, status, Response, Request
 from src.database.models.user import User
 from src.repositories.impl.user_repository_sql_alchemy import UserRepository
 from src.services.cookie_service import CookieService
-from src.services.user_service import UserService
+from src.services.user.user_service import UserService
 from src.schemas.user import RegisterUserDTO, LoginUserDTO
 from src.schemas.pagination import PageParams, PageResponse
 import bcrypt
