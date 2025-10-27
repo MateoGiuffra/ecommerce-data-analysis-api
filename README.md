@@ -1,6 +1,6 @@
 # FastAPI Ecommerce Data Analysis API
 
-Una API REST robusta y escalable construida con FastAPI para el análisis de datos de comercio electrónico. Incluye autenticación segura, tareas en segundo plano con Celery, caché de alto rendimiento con Redis y una arquitectura limpia lista para producción.
+A robust and scalable REST API built with FastAPI for e-commerce data analytics/analysis. It includes secure authentication, background tasks with Celery, high-performance caching with Redis, and a clean, production-ready architecture.
 
 ## ✨ Key Features
 
