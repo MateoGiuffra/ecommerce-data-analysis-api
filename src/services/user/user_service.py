@@ -9,6 +9,8 @@ from src.schemas.user import UserDTO
 from src.aspects.caching import Caching
 from fastapi import Request
 
+
+
 class UserService(metaclass=Caching):
     def __init__(self, user_repository:UserRepository, cookie_service: CookieService, cache_service: CacheService):
         self.user_repository = user_repository

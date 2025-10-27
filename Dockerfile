@@ -31,14 +31,21 @@ WORKDIR /app
 
 # Copy the installed dependencies from the builder stage
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/uvicorn
+# Copy executables installed by poetry
+COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
+COPY --from=builder /usr/local/bin/celery /usr/local/bin/
+COPY --from=builder /usr/local/bin/alembic /usr/local/bin/
 
 # Copy the application source code
 COPY ./src ./src
 COPY ./alembic ./alembic
+COPY ./scripts ./scripts
 COPY alembic.ini .
+COPY entrypoint.sh .
 
-# Command to run the application
-# The web server will bind to 0.0.0.0 to be accessible from outside the container.
-# Render provides the PORT environment variable.
-CMD uvicorn src.main:app --host 0.0.0.0 --port $PORT
+# Make the entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
+# Set the entrypoint for the container
+# This allows us to specify the command (web, worker, beat) in Render's start command
+ENTRYPOINT ["/app/entrypoint.sh"]

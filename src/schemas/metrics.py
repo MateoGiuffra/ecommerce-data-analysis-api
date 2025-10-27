@@ -27,6 +27,8 @@ class Serie(MetricBaseModel):
 class SerieType(str, Enum):
     MONTH = "month"
     WEEK = "week"
+    YEAR = "year"
+    DAY = "day"
     
     def get_resample_kind(self) -> str:
         match self.value:
@@ -34,6 +36,10 @@ class SerieType(str, Enum):
                 return "ME"
             case "week":
                 return "W"
+            case "year":
+                return "Y"
+            case "day":
+                return "D"
 
 def get_series_params(serie_type: SerieType = Query(SerieType.MONTH, description="Type of the series")) -> SerieType:
     return serie_type

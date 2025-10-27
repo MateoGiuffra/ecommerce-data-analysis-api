@@ -1,48 +1,49 @@
-# Archivos de entorno - ¡NUNCA SUBIR A GIT!
-.env
-
-# Base de datos local de desarrollo
-app.db
-*.sqlite
-*.sqlite3
-
-# Entornos virtuales
-venv/
-.venv/
-env/
-
-# Caché y archivos compilados de Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 
-# Artefactos de distribución y empaquetado
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
 
-# Archivos de configuración de IDEs y editores
+# Poetry
+.venv/
+poetry.lock
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Environment variables
+.env
+.env.*
+
+# IDE / Editor specific
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
 
-# Caché y reportes de testing
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-nosetests.xml
-coverage.xml
-
-# Archivos de sistema operativo
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Archivos temporales de Vim
-*.swp
-*.swo
+# Celery files
+celerybeat-schedule
+*.pid

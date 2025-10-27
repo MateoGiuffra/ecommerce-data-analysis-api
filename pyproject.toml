@@ -22,8 +22,9 @@ dependencies = [
     "pydantic-settings (>=2.11.0,<3.0.0)",
     "pandas (>=2.3.3,<3.0.0)",
     "gspread (>=6.2.1,<7.0.0)",
-    "redis[hiredis] (>=7.0.0,<8.0.0)",
-    "loguru (==0.7.2)"
+    "redis[hiredis] (==5.0.0)",
+    "loguru (==0.7.2)",
+    "celery[redis] (>=5.5.3,<6.0.0)"
 ]
 
 
@@ -37,7 +38,9 @@ dev = [
     "python-dotenv (>=1.1.1,<2.0.0)",
     "alembic (>=1.17.0,<2.0.0)",
     "httpx (>=0.28.1,<0.29.0)",
-    "poethepoet (>=0.37.0,<0.38.0)"
+    "poethepoet (>=0.37.0,<0.38.0)",
+    "honcho (>=2.0.0,<3.0.0)",
+    "psutil (>=7.1.2,<8.0.0)"
 ]
 
 [tool.pytest.ini_options]
@@ -47,6 +50,12 @@ pythonpath = [
 
 [tool.poe.tasks]
 dev = "uvicorn src.main:app --reload"
+worker = "poetry run celery -A src.tasks.worker.celery_app worker -l info -P solo -n worker@%h"
+beat = "poetry run celery -A src.tasks.worker.celery_app beat -l info"
+kill = "python scripts/kill_port.py 8000"
+"kill:celery" = "python scripts/kill_celery.py"
+honcho = "honcho start"
+"dev:all" = ["kill", "honcho"]
 
 [tool.poetry]
 package-mode = false

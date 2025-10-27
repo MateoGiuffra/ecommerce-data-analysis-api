@@ -1,0 +1,6 @@
+# Establece el comportamiento por defecto para todos los archivos.
+# Git intentará adivinar si un archivo es de texto o binario.
+* text=auto
+
+# Para los scripts de shell (.sh), fuerza explícitamente los finales de línea de Unix (LF).
+*.sh text eol=lf

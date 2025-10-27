@@ -1,21 +1,24 @@
-# FastAPI User Management REST API
+# FastAPI Ecommerce Data Analysis API
 
-A robust and scalable REST API built with FastAPI for user management, featuring secure authentication, a clean architecture, and a containerized setup ready for production.
+Una API REST robusta y escalable construida con FastAPI para el análisis de datos de comercio electrónico. Incluye autenticación segura, tareas en segundo plano con Celery, caché de alto rendimiento con Redis y una arquitectura limpia lista para producción.
 
 ## ✨ Key Features
 
 - **Modern Tech Stack**: Built with Python 3.12 and **FastAPI** for high performance and asynchronous capabilities.
 - **Clean Architecture**: Follows a clear separation of concerns with distinct layers for **Routers**, **Services**, and **Repositories**, making the codebase easy to maintain and extend.
-- **Secure Authentication**: Implements JWT-based authentication using secure, **HttpOnly cookies**, protecting against XSS attacks. Passwords are securely hashed using `bcrypt`.
+- **Secure Authentication**: Implements JWT-based authentication using secure **HttpOnly cookies** to protect against XSS attacks. Passwords are securely hashed using `bcrypt`.
 - **Database Management**: Uses **SQLAlchemy ORM** for database interactions and **Alembic** for handling database schema migrations.
+- **Asynchronous Background Tasks**: Utilizes **Celery** with a **Redis** broker to run tasks in the background, like pre-calentando el caché de datos.
+- **Performance Caching**: Implements a caching layer with **Redis** to store expensive computations (like DataFrames de Pandas) and API responses, drastically reducing response times.
+- **Data Analysis & Metrics**: Provides endpoints for analyzing e-commerce data, calculating KPIs, generating time series, and identifying top-performing countries.
 - **Dependency Injection**: Leverages FastAPI's powerful dependency injection system to manage dependencies and improve testability.
+- **Developer Tooling**: Uses **`poethepoet`** and **`honcho`** to simplify the local development workflow, allowing you to start the entire application stack (API, worker, scheduler) with a single command.
 - **Containerized**: Includes a multi-stage `Dockerfile` for building lightweight, production-ready Docker images, optimized for platforms like **Render**.
 - **Comprehensive Testing**: A full suite of unit and integration tests written with **Pytest**, ensuring code reliability.
-- **Pagination**: Built-in support for paginating list results.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Puesta en Marcha
 
 Follow these instructions to get a local copy up and running for development and testing.
 
@@ -60,11 +63,28 @@ Follow these instructions to get a local copy up and running for development and
     poetry run alembic upgrade head
     ```
 
-5.  **Run the development server:**
+5.  **Run the entire development environment:**
+    This single command will automatically:
+    - Kill any processes lingering on port 8000.
+    - Start the FastAPI server (`uvicorn`).
+    - Start the Celery worker to process tasks.
+    - Start the Celery beat scheduler to queue periodic tasks.
+    
     The application will be available at `http://127.0.0.1:8000`.
     ```sh
-    poetry run uvicorn src.main:app --reload
+    poetry run poe dev:all
     ```
+
+### Development Helper Scripts
+
+The `pyproject.toml` file contains several useful scripts managed by `poethepoet`:
+
+- `poe dev`: Starts only the FastAPI server with auto-reload.
+- `poe worker`: Starts only the Celery worker.
+- `poe beat`: Starts only the Celery beat scheduler.
+- `poe kill`: Kills any process running on port 8000.
+- `poe kill:celery`: Finds and forcefully terminates all lingering Celery processes.
+- `poe dev:all`: Kills old processes and starts the complete environment (server + worker + beat).
 
 ### Running Tests
 
@@ -79,7 +99,6 @@ poetry run pytest
 ## 📁 Project Structure
 
 The project follows a structured and modular layout:
-
 ```
 ├── alembic/           # Alembic migration scripts
 ├── src/               # Main application source code
@@ -112,10 +131,14 @@ Here is a summary of the available API endpoints.
 ### Users
 
 - `GET /users/me`: Get details for the currently authenticated user.
-- `GET /users`: Get a paginated list of all users.
-- `GET /users/{id}`: Get details for a specific user by their ID.
 
----
+### Metrics & Data Analysis
+
+- `GET /metrics/kpis`: Get a summary of Key Performance Indicators (total revenue, etc.).
+- `GET /metrics/series`: Get time series data for revenue and products sold (daily, weekly, monthly, yearly).
+- `GET /metrics/top-countries`: Get a list of top countries by revenue or products sold.
+- `GET /metrics/top-countries/{country_name}`: Get detailed metrics for a specific country.
+- `GET /metrics/page`: Get a paginated view of the raw, cleaned transaction data.
 
 ## 🐳 Deployment
 

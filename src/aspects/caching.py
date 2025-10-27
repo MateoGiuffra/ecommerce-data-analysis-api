@@ -21,9 +21,7 @@ class Caching(type):
         @wraps(original_method)
         async def _cached_method_wrapper(self, *args, **kwargs):
             if not hasattr(self, 'cache_service'):
-                # Failsafe: if the instance doesn't have a cache_service, just run the original method.
                 return await original_method(self, *args, **kwargs)
             
-            # The actual caching logic is now delegated to the cache_service's `cache` method.
             return await self.cache_service.cache(original_method)(self, *args, **kwargs)
         return _cached_method_wrapper
