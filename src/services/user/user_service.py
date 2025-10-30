@@ -5,10 +5,8 @@ from src.services.cookie_service import CookieService
 from src.services.cache_service import CacheService
 from src.exceptions.user_exceptions import *
 from src.database.models.user import User
-from src.schemas.user import UserDTO
 from src.aspects.caching import Caching
 from fastapi import Request
-
 
 
 class UserService(metaclass=Caching):
