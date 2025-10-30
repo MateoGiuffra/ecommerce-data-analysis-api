@@ -29,6 +29,7 @@ class MetricsService(metaclass=Caching):
         self.df_cache_key = "metrics:clean_dataframe"
         self.cache_df_ttl_seconds = cache_df_ttl_seconds
         
+        
     def _clean_and_convert_to_numeric(self, series: pd.Series) -> Series:
         """
         Cleans a pandas Series by removing commas and stripping whitespace,
@@ -39,6 +40,25 @@ class MetricsService(metaclass=Caching):
             errors="coerce"
         ).fillna(0)
         return series.astype(float)
+    
+    @excluded_from_cache
+    def _process_dataframe(self, df: DataFrame) -> DataFrame:
+        """Processes the raw dataframe by cleaning, transforming, and adding columns."""
+        if df.empty:
+            return df
+        df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+        self._validate_columns(df)
+        df[self.quantity] = self._clean_and_convert_to_numeric(df[self.quantity])
+        df[self.unit_price] = self._clean_and_convert_to_numeric(df[self.unit_price])
+        df[self.invoice_date] = pd.to_datetime(df[self.invoice_date])
+        df[self.total_price] = df[self.quantity] * df[self.unit_price]
+        return df.set_index(self.invoice_date)
+
+    @excluded_from_cache
+    async def warm_up_dataframe_cache(self) -> None:
+        raw_df: DataFrame = self.metrics_repository.get_raw_transactions()
+        df = self._process_dataframe(raw_df)
+        await self.cache_service.set_dataframe(self.df_cache_key, df, self.cache_df_ttl_seconds)
 
     def _get_clean_data_frame(self) -> Callable[[], Awaitable[DataFrame]]:
         """
@@ -48,18 +68,8 @@ class MetricsService(metaclass=Caching):
         @self.cache_service.cache_dataframe(key=self.df_cache_key, ttl_seconds=self.cache_df_ttl_seconds)
         async def _fetch_and_clean_dataframe() -> DataFrame:
             """This function contains the actual data processing logic."""
-            df: DataFrame = self.metrics_repository.get_raw_transactions()
-            if df.empty:
-                return df
-            
-            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
-            self._validate_columns(df)
-            df[self.quantity] = self._clean_and_convert_to_numeric(df[self.quantity])
-            df[self.unit_price] = self._clean_and_convert_to_numeric(df[self.unit_price])
-            df[self.invoice_date] = pd.to_datetime(df[self.invoice_date])
-            df[self.total_price] = df[self.quantity] * df[self.unit_price]
-            df = df.set_index(self.invoice_date)
-            return df
+            raw_df: DataFrame = self.metrics_repository.get_raw_transactions()
+            return self._process_dataframe(raw_df)
         
         return _fetch_and_clean_dataframe
     

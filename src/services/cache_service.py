@@ -29,6 +29,7 @@ class CacheService:
         logger.info(f"Cache MISS for key: {key}")
         return None
 
+
     async def set_dataframe(self, key: str, df: DataFrame, ttl_seconds: int) -> None:
         """
         Serializes and stores a pandas DataFrame in the cache with a TTL.
