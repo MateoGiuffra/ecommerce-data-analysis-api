@@ -46,4 +46,6 @@ poetry.lock
 
 # Celery files
 celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
 *.pid
