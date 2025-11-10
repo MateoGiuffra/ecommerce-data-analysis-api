@@ -8,6 +8,8 @@ from src.services.user.user_service import UserService
 from src.schemas.user import RegisterUserDTO, LoginUserDTO
 from src.schemas.pagination import PageParams, PageResponse
 import bcrypt
+from src.services.user.auth_service import AuthService
+
 
 # --- Fixtures ---
 
@@ -25,6 +27,11 @@ def cookie_service_mock():
 def user_service(user_repository_mock: UserRepository, cookie_service_mock: CookieService):
     """Fixture to get an instance of UserService with mocks."""
     return UserService(user_repository_mock, cookie_service_mock)
+
+@pytest.fixture
+def auth_service(user_repository_mock: UserRepository, cookie_service_mock: CookieService):
+    """Fixture to get an instance of UserService with mocks."""
+    return AuthService(user_repository_mock, cookie_service_mock)
 
 @pytest.fixture
 def sample_user():
@@ -53,7 +60,7 @@ def mock_request():
 
 # --- Tests for register method ---
 
-def test_register_success(user_service: UserService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, register_user_dto: RegisterUserDTO, mock_response: Response, sample_user: User):
+def test_register_success(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, register_user_dto: RegisterUserDTO, mock_response: Response, sample_user: User):
     """Tests the successful registration of a user."""
     user_repository_mock.user_does_exist.return_value = False
     
@@ -63,7 +70,7 @@ def test_register_success(user_service: UserService, user_repository_mock: UserR
         
         user_repository_mock.save.return_value = sample_user
         
-        registered_user = user_service.register(register_user_dto, mock_response)
+        registered_user = auth_service.register(register_user_dto, mock_response)
         
         user_repository_mock.user_does_exist.assert_called_once_with(register_user_dto.username)
         user_repository_mock.save.assert_called_once()
@@ -77,12 +84,12 @@ def test_register_success(user_service: UserService, user_repository_mock: UserR
         cookie_service_mock.set_cookie.assert_called_once_with(mock_response, sample_user)
         assert registered_user == sample_user
 
-def test_register_username_exists(user_service: UserService, user_repository_mock: UserRepository, register_user_dto: RegisterUserDTO, mock_response: Response):
+def test_register_username_exists(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, register_user_dto: RegisterUserDTO, mock_response: Response):
     """Tests registration when the username already exists."""
     user_repository_mock.user_does_exist.return_value = True
     
     with pytest.raises(HTTPException) as exc_info:
-        user_service.register(register_user_dto, mock_response)
+        auth_service.register(register_user_dto, mock_response)
     
     assert exc_info.value.status_code == status.HTTP_409_CONFLICT
     assert exc_info.value.detail == "Username already exists"
@@ -91,36 +98,36 @@ def test_register_username_exists(user_service: UserService, user_repository_moc
     
 # --- Tests for login method ---
  
-def test_login_success(user_service: UserService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, login_user_dto: LoginUserDTO, mock_response: Response, sample_user: User):
+def test_login_success(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, login_user_dto: LoginUserDTO, mock_response: Response, sample_user: User):
     """Tests the successful login of a user."""
     user_repository_mock.get_by_username.return_value = sample_user
     
     with patch('bcrypt.checkpw', return_value=True): # Mock checkpw to simulate correct password
-        logged_in_user = user_service.login(login_user_dto, mock_response)
+        logged_in_user = auth_service.login(login_user_dto, mock_response)
         
         user_repository_mock.get_by_username.assert_called_once_with(login_user_dto.username)
         cookie_service_mock.set_cookie.assert_called_once_with(mock_response, sample_user)
         assert logged_in_user == sample_user
  
-def test_login_user_not_found(user_service: UserService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, login_user_dto: LoginUserDTO, mock_response: Response):
+def test_login_user_not_found(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, login_user_dto: LoginUserDTO, mock_response: Response):
     """Tests login when the user does not exist."""
     user_repository_mock.get_by_username.return_value = None
     
     with pytest.raises(HTTPException) as exc_info:
-        user_service.login(login_user_dto, mock_response)
+        auth_service.login(login_user_dto, mock_response)
     
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
     assert exc_info.value.detail == "User not found"
     user_repository_mock.get_by_username.assert_called_once_with(login_user_dto.username)
     cookie_service_mock.set_cookie.assert_not_called()
  
-def test_login_invalid_password(user_service: UserService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, login_user_dto: LoginUserDTO, mock_response: Response, sample_user: User):
+def test_login_invalid_password(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, cookie_service_mock: CookieService, login_user_dto: LoginUserDTO, mock_response: Response, sample_user: User):
     """Tests login with an invalid password."""
     user_repository_mock.get_by_username.return_value = sample_user
     
     with patch('bcrypt.checkpw', return_value=False): # Mock checkpw to simulate incorrect password
         with pytest.raises(HTTPException) as exc_info:
-            user_service.login(login_user_dto, mock_response)
+            auth_service.login(login_user_dto, mock_response)
         
     assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     assert exc_info.value.detail == "Invalid credentials"
@@ -129,21 +136,21 @@ def test_login_invalid_password(user_service: UserService, user_repository_mock:
 
 # --- Tests for delete_all method ---
 
-def test_delete_all(user_service: UserService, user_repository_mock: UserRepository):
+def test_delete_all(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository):
     """Tests that the delete_all method calls the repository."""
     user_service.delete_all()
     user_repository_mock.delete_all.assert_called_once()
 
 # --- Tests for logout method ---
 
-def test_logout(user_service: UserService, cookie_service_mock: CookieService, mock_response: Response):
+def test_logout(user_service: UserService, auth_service: AuthService, cookie_service_mock: CookieService, mock_response: Response):
     """Tests that the logout method calls the cookie service."""
-    user_service.logout(mock_response)
+    auth_service.logout(mock_response)
     cookie_service_mock.clean_cookies.assert_called_once_with(mock_response)
 
 # --- Tests for get_current_user method ---
 
-def test_get_current_user_success(user_service: UserService, cookie_service_mock: CookieService, user_repository_mock: UserRepository, mock_request: Request, sample_user: User):
+def test_get_current_user_success(user_service: UserService, auth_service: AuthService, cookie_service_mock: CookieService, user_repository_mock: UserRepository, mock_request: Request, sample_user: User):
     """Tests successfully getting the current user."""
     cookie_service_mock.get_user_id_from_token.return_value = sample_user.id
     user_repository_mock.get_by_id.return_value = sample_user
@@ -154,7 +161,7 @@ def test_get_current_user_success(user_service: UserService, cookie_service_mock
     user_repository_mock.get_by_id.assert_called_once_with(sample_user.id)
     assert current_user == sample_user
 
-def test_get_current_user_no_token_or_user_not_found(user_service: UserService, cookie_service_mock: CookieService, user_repository_mock: UserRepository, mock_request: Request):
+def test_get_current_user_no_token_or_user_not_found(user_service: UserService, auth_service: AuthService, cookie_service_mock: CookieService, user_repository_mock: UserRepository, mock_request: Request):
     """Tests getting the current user when there is no token or the user is not found."""
     cookie_service_mock.get_user_id_from_token.return_value = None # Simulate no token or invalid token
     user_repository_mock.get_by_id.return_value = None # Simulate user not found when get_by_id is called with None
@@ -169,7 +176,7 @@ def test_get_current_user_no_token_or_user_not_found(user_service: UserService, 
 
 # --- Tests for get_user_by_id method ---
 
-def test_get_user_by_id_success(user_service: UserService, user_repository_mock: UserRepository, sample_user: User):
+def test_get_user_by_id_success(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, sample_user: User):
     """Tests successfully getting a user by ID."""
     user_repository_mock.get_by_id.return_value = sample_user
     
@@ -178,7 +185,7 @@ def test_get_user_by_id_success(user_service: UserService, user_repository_mock:
     user_repository_mock.get_by_id.assert_called_once_with(sample_user.id)
     assert found_user == sample_user
 
-def test_get_user_by_id_not_found(user_service: UserService, user_repository_mock: UserRepository):
+def test_get_user_by_id_not_found(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository):
     """Tests getting a user by ID when the user is not found."""
     user_repository_mock.get_by_id.return_value = None
     non_existent_id = "non-existent-id"
@@ -192,7 +199,7 @@ def test_get_user_by_id_not_found(user_service: UserService, user_repository_moc
 
 # --- Tests for list_users method ---
 
-def test_list_users_default_pagination(user_service: UserService, user_repository_mock: UserRepository, sample_user: User):
+def test_list_users_default_pagination(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, sample_user: User):
     """Tests listing users with default pagination."""
     user_repository_mock.get_users.return_value = [sample_user]
     user_repository_mock.get_count.return_value = 1
@@ -210,7 +217,7 @@ def test_list_users_default_pagination(user_service: UserService, user_repositor
     assert response.total_results == 1
     assert response.total_pages == 1 # (1 + 10 - 1) // 10 = 1
 
-def test_list_users_custom_pagination(user_service: UserService, user_repository_mock: UserRepository, sample_user: User):
+def test_list_users_custom_pagination(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository, sample_user: User):
     """Tests listing users with custom pagination."""
     user_repository_mock.get_users.return_value = [sample_user]
     user_repository_mock.get_count.return_value = 10
@@ -228,7 +235,7 @@ def test_list_users_custom_pagination(user_service: UserService, user_repository
     assert response.total_results == 10
     assert response.total_pages == 2 # (10 + 5 - 1) // 5 = 2
 
-def test_list_users_empty_results(user_service: UserService, user_repository_mock: UserRepository):
+def test_list_users_empty_results(user_service: UserService, auth_service: AuthService, user_repository_mock: UserRepository):
     """Tests listing users when there are no results."""
     user_repository_mock.get_users.return_value = []
     user_repository_mock.get_count.return_value = 0

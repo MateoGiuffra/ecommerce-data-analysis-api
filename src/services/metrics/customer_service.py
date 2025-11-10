@@ -4,7 +4,9 @@ from pandas import DataFrame
 from src.schemas.metrics import *
 from typing import List
 from src.repositories.metrics_repository import MetricsRepository
+from src.schemas.pagination import PageParams, PageResponse
 import pandas as pd
+from math import ceil
 
 class CustomerService(MetricsService):
     def __init__(self, metrics_repository: MetricsRepository, cache_service: CacheService, cache_df_ttl_seconds: int):
@@ -96,6 +98,28 @@ class CustomerService(MetricsService):
             mapped = [labels_for_bins[c] if c >= 0 else None for c in codes]
             return pd.Series(mapped, index=series.index)
 
+
+    async def get_rfm_analysis_page(self, page_params: PageParams) -> PageResponse[RFMAnalysis]: 
+        all_results: List[RFMAnalysis] = await self.get_rfm_analysis()
+        all_results = sorted(all_results, key=lambda r: (r.get("total_spend", 0), r.get("frequency", 0)), reverse=True)
+        
+        total_results = len(all_results)
+        limit = max(1, int(page_params.limit))
+        page = max(1, int(page_params.page))
+
+        total_pages = ceil(total_results / limit) if total_results > 0 else 1
+
+        start = (page - 1) * limit
+        end = start + limit
+        page_slice = all_results[start:end]
+
+        return PageResponse(
+            results=page_slice,
+            page=page,
+            limit=limit,
+            total_pages=total_pages,
+            total_results=total_results,
+        )
         
     async def get_rfm_analysis(self, max_score: int = 5) -> List[RFMAnalysis]:
         """

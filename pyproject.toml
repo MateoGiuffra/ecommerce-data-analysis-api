@@ -1,5 +1,5 @@
 [project]
-name = "ecommerce-data-analysis-api"
+name = "ecommerce_data_analysis_api"
 version = "0.1.0"
 description = "API REST in Python using FastAPI, SQLAlchemy, Cookies in authentication and Clean Architecture"
 authors = [
@@ -9,7 +9,7 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.12"
 packages = [
-    { include = "src", from = "." }
+    { include = "ecommerce_data_analysis_api" }
 ]
 
 dependencies = [
@@ -25,8 +25,10 @@ dependencies = [
     "redis[hiredis] (==5.0.0)",
     "loguru (==0.7.2)",
     "alembic (>=1.17.0,<2.0.0)",
-    "celery[redis] (>=5.5.3,<6.0.0)"
+    "celery[redis] (>=5.5.3,<6.0.0)",
+    "typer (>=0.20.0,<0.21.0)"
 ]
+
 
 
 [build-system]
@@ -50,19 +52,26 @@ pythonpath = [
 ]
 asyncio_mode = "auto"
 
+[project.scripts]
+ecommerce-cli = "ecommerce_data_analysis_api.cli:app"
+
+[tool.poetry.scripts]
+ecommerce-cli = "ecommerce_data_analysis_api.cli:app"
+
 [tool.coverage.run]
 omit = [
     "tests/*",
 ]
 
 [tool.poe.tasks]
+ecommerce-cli = "python -m src.cli"
 dev = "uvicorn src.main:app --reload"
 worker = "poetry run celery -A src.tasks.worker.celery_app worker -l info -P solo -n worker@%h"
 beat = "poetry run celery -A src.tasks.worker.celery_app beat -l info"
-kill = "python scripts/kill_port.py 8000"
-"kill:celery" = "python scripts/kill_celery.py"
+kill = "python public/scripts/kill_port.py 8000"
+"kill:celery" = "python public/scripts/kill_celery.py"
 honcho = "honcho start"
 "dev:all" = ["kill", "honcho"]
 
 [tool.poetry]
-package-mode = false
+package-mode = true

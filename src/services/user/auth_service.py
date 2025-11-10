@@ -6,7 +6,7 @@ from src.exceptions.user_exceptions import *
 from src.services.cookie_service import CookieService
 import bcrypt
 
-class UserAuthService():
+class AuthService():
     def __init__(self, user_repository:UserRepository, cookie_service: CookieService):
         self.user_repository = user_repository
         self.cookie_service = cookie_service

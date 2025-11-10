@@ -8,4 +8,4 @@ class MetricsRepositoryLocal(MetricsRepository):
         return "data"
     
     def get_raw_transactions(self) -> DataFrame:
-        return pd.read_csv("data/data.csv", encoding="utf-8")
+        return pd.read_csv("public/data/data.csv", encoding="utf-8")

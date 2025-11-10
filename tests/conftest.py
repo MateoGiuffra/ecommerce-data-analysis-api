@@ -2,14 +2,14 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 from src.main import app
-from src.services.user.auth_service import UserAuthService
+from src.services.user.auth_service import AuthService
 from src.services.user.user_service import UserService
 from src.dependencies.services_di import get_auth_service, get_user_service
 from src.core.config import settings
 
 @pytest.fixture
 def user_auth_service_mock():
-    mock = MagicMock(spec=UserAuthService)
+    mock = MagicMock(spec=AuthService)
     return mock
 
 @pytest.fixture

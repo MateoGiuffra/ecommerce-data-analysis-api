@@ -3,7 +3,7 @@ from src.repositories.impl.user_repository_sql_alchemy import UserRepository
 from src.core.config import settings
 from redis import asyncio as aioredis
 from src.services.user.user_service import UserService
-from src.services.user.auth_service import UserAuthService
+from src.services.user.auth_service import AuthService
 from src.dependencies.repositories_di import get_user_repository
 from src.services.cookie_service import CookieService
 from src.services.metrics.product_service import ProductService
@@ -53,11 +53,11 @@ def get_injected_user_service(
     return user_service
 
 # ----------------------------------------------------------------------
-# UserAuthService
+# AuthService
 # ----------------------------------------------------------------------
 
 def get_auth_service(user_repository: UserRepository = Depends(get_user_repository), cookie_service: CookieService = Depends(get_cookie_service)):
-    return UserAuthService(user_repository, cookie_service)
+    return AuthService(user_repository, cookie_service)
 
 # ----------------------------------------------------------------------
 # MetricsService

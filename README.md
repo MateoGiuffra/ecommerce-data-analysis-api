@@ -1,5 +1,4 @@
 # FastAPI Ecommerce Data Analysis API
-web: poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000
 A robust and scalable REST API built with FastAPI for e-commerce data analysis. It includes secure authentication, background tasks with Celery, high-performance caching with Redis, and a clean, production-ready architecture.
 
 ## ✨ Key Features
@@ -42,28 +41,6 @@ Follow these instructions to get a local copy up and running for development and
 
 3.  **Create an environment file:**
     Create a `.env` file in the root directory by copying the example file. This file will hold your environment variables.
-    ```sh
-    cp .env.example .env
-    ```
-    Now, fill in the variables in your new `.env` file:
-    ```env
-    # --- Application & JWT Settings ---
-    SECRET_KEY="your-super-secret-key-for-jwt"
-    ALGORITHM="HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES=30
-    COOKIE_SECURE=False # Set to True in production with HTTPS
-
-    # --- Database Settings ---
-    DATABASE_URL="postgresql+psycopg2://user:password@localhost/dbname"
-
-    # --- Redis & Celery Settings ---
-    # URL for the main Redis instance (used for caching)
-    REDIS_URL="redis://localhost:6379/0"
-    # URL for the Celery message broker (can be the same Redis instance, different DB)
-    CELERY_BROKER_URL="redis://localhost:6379/1"
-    CELERY_RESULT_BACKEND="redis://localhost:6379/1"
-    CACHE_DF_TTL_SECONDS=3600 # Time-to-live for the dataframe cache (in seconds)
-    ```
 
 4.  **Run database migrations:**
     Apply the latest database schema using Alembic.
@@ -72,7 +49,7 @@ Follow these instructions to get a local copy up and running for development and
     ```
 
 5.  **Run the entire development environment:**
-    This single command will automatically:
+    With this single command the application will automatically:
     - Kill any processes lingering on port 8000.
     - Start the FastAPI server (`uvicorn`).
     - Start the Celery worker to process tasks.
@@ -80,8 +57,39 @@ Follow these instructions to get a local copy up and running for development and
     
     The application will be available at `http://127.0.0.1:8000`.
     ```sh
-    poetry run poe dev:all
+    poetry run ecommerce-cli runserver --port 8000
     ```
+
+## 🛠 Developer CLI (recommended)
+
+This project exposes a small developer CLI implemented with Typer. After installing the project (editable or via `poetry install`), you can use the `ecommerce-cli` entry point to run common tasks without Poe.
+
+Common commands:
+
+- Start the full development stack (kill port, optional kill celery, then run Procfile via honcho):
+```powershell
+poetry run ecommerce-cli runserver --port 8000
+```
+
+- Start only FastAPI (uvicorn) with auto-reload:
+```powershell
+poetry run ecommerce-cli runfastapi --host 0.0.0.0 --port 8000 --reload
+```
+
+- Create an alembic migration and upgrade head:
+```powershell
+poetry run ecommerce-cli migrate --message "add table"
+```
+
+- Run a celery worker:
+```powershell
+poetry run ecommerce-cli celeryworker --concurrency 4
+```
+
+Notes:
+- `runserver` will attempt to run the legacy `poe dev:all` flow first (if you still use Poe). If that is not available, it will fall back to using a local `Procfile` with `honcho`, and finally to starting FastAPI directly. The CLI will also run the kill scripts (now located under `public/scripts/`) before starting processes.
+- The CLI keeps logs in the foreground so you can see FastAPI, Celery and beat logs combined when using honcho.
+
 
 ### Development Helper Scripts
 
@@ -94,6 +102,7 @@ The `pyproject.toml` file contains several useful scripts managed by `poethepoet
 - `poe kill:celery`: Finds and forcefully terminates all lingering Celery processes.
 - `poe dev:all`: Kills old processes and starts the complete environment (server + worker + beat).
 
+
 ### Running Tests
 
 To run the entire test suite, use the following command:
@@ -101,6 +110,35 @@ To run the entire test suite, use the following command:
 ```sh
 poetry run pytest
 ```
+
+## 🌐 Endpoints
+
+Here is a summary of the available API endpoints.
+
+### Authentication
+
+- `POST /auth/register`: Register a new user.
+- `POST /auth/login`: Log in and receive an authentication cookie.
+- `POST /auth/logout`: Log out and clear the authentication cookie.
+
+### Users
+
+- `GET /users/me`: Get details for the currently authenticated user.
+- `GET /users`: Get all users page.
+
+### Metrics & Data Analysis
+
+- `GET /metrics/kpis`: Get a summary of Key Performance Indicators (total revenue, etc.).
+- `GET /metrics/series`: Get time series data for revenue and products sold (daily, weekly, monthly, yearly).
+- `GET /metrics/top-countries`: Get a list of top countries by revenue or products sold.
+- `GET /metrics/top-countries/{country_name}`: Get detailed metrics for a specific country.
+- `GET /metrics/page`: Get a paginated view of the raw, cleaned transaction data.
+
+## 🐳 Deployment
+
+This application is ready to be deployed as a Docker container. The included `Dockerfile` is optimized for production and works seamlessly with hosting platforms like **Render**, Heroku, or any cloud provider that supports Docker containers.
+
+The server is configured to run on the port specified by the `PORT` environment variable, which is standard for most hosting platforms.
 
 ---
 
@@ -125,34 +163,6 @@ The project follows a structured and modular layout:
 ```
 
 ---
-
-## 🌐 Endpoints
-
-Here is a summary of the available API endpoints.
-
-### Authentication
-
-- `POST /auth/register`: Register a new user.
-- `POST /auth/login`: Log in and receive an authentication cookie.
-- `POST /auth/logout`: Log out and clear the authentication cookie.
-
-### Users
-
-- `GET /users/me`: Get details for the currently authenticated user.
-
-### Metrics & Data Analysis
-
-- `GET /metrics/kpis`: Get a summary of Key Performance Indicators (total revenue, etc.).
-- `GET /metrics/series`: Get time series data for revenue and products sold (daily, weekly, monthly, yearly).
-- `GET /metrics/top-countries`: Get a list of top countries by revenue or products sold.
-- `GET /metrics/top-countries/{country_name}`: Get detailed metrics for a specific country.
-- `GET /metrics/page`: Get a paginated view of the raw, cleaned transaction data.
-
-## 🐳 Deployment
-
-This application is ready to be deployed as a Docker container. The included `Dockerfile` is optimized for production and works seamlessly with hosting platforms like **Render**, Heroku, or any cloud provider that supports Docker containers.
-
-The server is configured to run on the port specified by the `PORT` environment variable, which is standard for most hosting platforms.
 
 ## Resources
 
