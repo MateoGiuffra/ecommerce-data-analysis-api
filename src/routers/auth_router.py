@@ -8,14 +8,18 @@ from src.schemas.user import UserDTO
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+ 
 @public
-@router.post("/register", status_code=status.HTTP_201_CREATED) 
-async def register(register_user_dto: RegisterUserDTO, response: Response, user_auth_service: UserAuthService = Depends(get_auth_service)) -> UserDTO:
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserDTO) 
+async def register(
+    register_user_dto: RegisterUserDTO,
+    response: Response, user_auth_service: UserAuthService = Depends(get_auth_service)
+) -> UserDTO:
     new_user = user_auth_service.register(register_user_dto, response)
     return UserDTO.model_validate(new_user, from_attributes=True)
 
 @public
-@router.post("/login", status_code=status.HTTP_200_OK) 
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=UserDTO) 
 async def login(
     login_user_dto: LoginUserDTO, 
     response: Response,  
@@ -28,3 +32,5 @@ async def login(
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(response: Response, user_auth_service: UserAuthService = Depends(get_auth_service)):
     user_auth_service.logout(response)
+
+

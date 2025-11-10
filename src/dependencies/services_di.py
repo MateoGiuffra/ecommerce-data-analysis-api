@@ -6,11 +6,13 @@ from src.services.user.user_service import UserService
 from src.services.user.auth_service import UserAuthService
 from src.dependencies.repositories_di import get_user_repository
 from src.services.cookie_service import CookieService
+from src.services.metrics.product_service import ProductService
+from src.services.metrics.customer_service import CustomerService
 
 # ----------------------------------------------------------------------
 # CacheService
 # ----------------------------------------------------------------------
-from src.services.metrics_service import MetricsService
+from src.services.metrics.metrics_service import MetricsService
 from src.dependencies.repositories_di import get_metrics_repository
 from src.services.cache_service import CacheService
 from src.repositories.metrics_repository import MetricsRepository
@@ -63,3 +65,18 @@ def get_auth_service(user_repository: UserRepository = Depends(get_user_reposito
 
 def get_metrics_service(metrics_repository: MetricsRepository = Depends(get_metrics_repository), cache_service: CacheService = Depends(get_cache_service)) -> MetricsService:
     return MetricsService(metrics_repository, cache_service, cache_df_ttl_seconds=settings.CACHE_DF_TTL_SECONDS)
+
+
+# ----------------------------------------------------------------------
+# ProductsService
+# ----------------------------------------------------------------------
+def get_product_service(metrics_repository: MetricsRepository = Depends(get_metrics_repository), cache_service: CacheService = Depends(get_cache_service)) -> ProductService:
+    return ProductService(metrics_repository, cache_service, cache_df_ttl_seconds=settings.CACHE_DF_TTL_SECONDS)
+
+# ----------------------------------------------------------------------
+# CustomerService
+# ----------------------------------------------------------------------
+def get_customer_service(metrics_repository: MetricsRepository = Depends(get_metrics_repository), cache_service: CacheService = Depends(get_cache_service)) -> CustomerService:
+    return CustomerService(metrics_repository, cache_service, cache_df_ttl_seconds=settings.CACHE_DF_TTL_SECONDS)
+
+#

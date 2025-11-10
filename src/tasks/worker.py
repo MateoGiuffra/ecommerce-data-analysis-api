@@ -2,7 +2,7 @@ import asyncio
 import logging
 import random
 from celery import Celery
-from src.services.metrics_service import MetricsService
+from src.services.metrics.metrics_service import MetricsService
 from src.core.config import settings
 from src.dependencies.tasks import get_metrics_service_instance
 

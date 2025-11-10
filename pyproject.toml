@@ -40,12 +40,19 @@ dev = [
     "httpx (>=0.28.1,<0.29.0)",
     "poethepoet (>=0.37.0,<0.38.0)",
     "honcho (>=2.0.0,<3.0.0)",
-    "psutil (>=7.1.2,<8.0.0)"
+    "psutil (>=7.1.2,<8.0.0)",
+    "pytest-asyncio (>=1.2.0,<2.0.0)"
 ]
 
 [tool.pytest.ini_options]
 pythonpath = [
     "src"
+]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
 ]
 
 [tool.poe.tasks]

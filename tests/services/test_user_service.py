@@ -122,10 +122,10 @@ def test_login_invalid_password(user_service: UserService, user_repository_mock:
         with pytest.raises(HTTPException) as exc_info:
             user_service.login(login_user_dto, mock_response)
         
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc_info.value.detail == "Invalid password"
-        user_repository_mock.get_by_username.assert_called_once_with(login_user_dto.username)
-        cookie_service_mock.set_cookie.assert_not_called()
+    assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+    assert exc_info.value.detail == "Invalid credentials"
+    user_repository_mock.get_by_username.assert_called_once_with(login_user_dto.username)
+    cookie_service_mock.set_cookie.assert_not_called()
 
 # --- Tests for delete_all method ---
 

@@ -2,7 +2,7 @@ from fastapi import status
 from src.exceptions.generic_exceptions import MyHTTPException
 
 class UserAlreadyExists(MyHTTPException):
-    def __init__(self, detail: str = "User with that username already exists"):
+    def __init__(self, detail: str = "Username already exists"):
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
 class UserNotFound(MyHTTPException):

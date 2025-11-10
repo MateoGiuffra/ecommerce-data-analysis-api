@@ -22,9 +22,9 @@ class UserAuthService():
         new_user = User(username=register_user_dto.username, password=password_hashed.decode('utf-8'))
         user_saved = self.user_repository.save(new_user)
         self.cookie_service.set_cookie(response, user_saved)
-        return UserDTO.model_validate(user_saved)
+        return user_saved
 
-    def login(self, login_user_dto: LoginUserDTO, response: Response) -> UserDTO: 
+    def login(self, login_user_dto: LoginUserDTO, response: Response) -> User: 
         user = self.user_repository.get_by_username(login_user_dto.username)
         if not user or user is None:
             raise UserNotFound()
@@ -32,7 +32,7 @@ class UserAuthService():
         if not is_valid_password:
             raise InvalidCredentials()
         self.cookie_service.set_cookie(response, user)
-        return UserDTO.model_validate(user)
+        return user
         
     def logout(self, response: Response):
         self.cookie_service.clean_cookies(response)

@@ -6,6 +6,7 @@ from fastapi import Request
 from jose import JWTError
 
 import logging
+import traceback
 logger = logging.getLogger(__name__)
 
 class JWTCookieAuthMiddleware(BaseHTTPMiddleware):
@@ -32,7 +33,18 @@ class JWTCookieAuthMiddleware(BaseHTTPMiddleware):
                     ).model_dump()
             )
         except Exception as e:
-            logger.error(f"Exception middleware: {e} \n type: {type(e)} \n tracer: {e.__traceback__.__str__}\n  ")
+            # Use logger.exception to include the full stack trace in the logs.
+            # Also log request context to help reproduce the error.
+            tb = traceback.format_exc()
+            logger.error(
+                "Unhandled exception in JWTCookieAuthMiddleware - path=%s method=%s: %s\n%s",
+                request.url.path,
+                request.method,
+                e,
+                tb,
+            )
+            # Additionally emit exception with logger.exception for frameworks that pick it up
+            logger.exception("Exception middleware")
             return JSONResponse(
                 status_code=500,
                 content=ErrorDTO(

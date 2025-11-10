@@ -95,10 +95,20 @@ def test_get_user_id_from_token_expired(cookie_service: CookieService, sample_us
 
 def test_validate_token_invalid(cookie_service: CookieService):
     """Tests that validate_token raises an exception for an invalid token."""
-    with pytest.raises(JWTError):
-        cookie_service.validate_token("invalid.token")
+    previous = getattr(settings, "TESTING", False)
+    settings.TESTING = False
+    try:
+        with pytest.raises(JWTError):
+            cookie_service.validate_token("invalid.token")
+    finally:
+        settings.TESTING = previous
 
 def test_validate_token_none(cookie_service: CookieService):
     """Tests that validate_token raises an exception for a null token."""
-    with pytest.raises(JWTError):
-        cookie_service.validate_token(None)
+    previous = getattr(settings, "TESTING", False)
+    settings.TESTING = False
+    try:
+        with pytest.raises(JWTError):
+            cookie_service.validate_token(None)
+    finally:
+        settings.TESTING = previous

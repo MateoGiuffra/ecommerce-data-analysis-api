@@ -3,6 +3,8 @@ from src.schemas.pagination import PageParams, PageResponse
 from src.aspects.decorators import excluded_from_cache
 from src.services.cookie_service import CookieService
 from src.services.cache_service import CacheService
+from src.services.user.auth_service import UserAuthService
+from typing import Optional
 from src.exceptions.user_exceptions import *
 from src.database.models.user import User
 from src.aspects.caching import Caching
@@ -10,26 +12,38 @@ from fastapi import Request
 
 
 class UserService(metaclass=Caching):
-    def __init__(self, user_repository:UserRepository, cookie_service: CookieService, cache_service: CacheService):
+    def __init__(self, user_repository:UserRepository, cookie_service: CookieService, cache_service: Optional[CacheService] = None, auth_service: Optional[UserAuthService] = None):
         self.user_repository = user_repository
         self.cookie_service = cookie_service
         self.cache_service = cache_service
+        # Provide a default UserAuthService so tests that call register/login on UserService work
+        self.auth_service = auth_service or UserAuthService(user_repository, cookie_service)
+
+    # Delegate authentication-related methods to the underlying auth service for backwards compatibility
+    def register(self, register_user_dto, response):
+        return self.auth_service.register(register_user_dto, response)
+
+    def login(self, login_user_dto, response):
+        return self.auth_service.login(login_user_dto, response)
+
+    def logout(self, response):
+        return self.auth_service.logout(response)
             
     @excluded_from_cache
     def delete_all(self):
         self.user_repository.delete_all()
-        
-    async def get_current_user(self, request: Request):
+
+    def get_current_user(self, request: Request):
         user_id = self.cookie_service.get_user_id_from_token(request)
-        return await self.get_user_by_id(user_id)
-    
-    async def get_user_by_id(self, id: str) -> User: 
+        return self.get_user_by_id(user_id)
+
+    def get_user_by_id(self, id: str) -> User:
         user = self.user_repository.get_by_id(id)
-        if not user: 
+        if not user:
             raise UserNotFound(detail=f"User with id {id} not found")
         return user
-    
-    async def list_users(self, params: PageParams) -> PageResponse:
+
+    def list_users(self, params: PageParams) -> PageResponse:
         limit = params.limit
         users = self.user_repository.get_users(params.offset, limit)
         total_results = self.user_repository.get_count()

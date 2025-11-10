@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from typing import List
 from src.dependencies.services_di import get_metrics_service
-from src.services.metrics_service import MetricsService
+from src.services.metrics.metrics_service import MetricsService
 from src.schemas.pagination import PageParams, get_page_params, PageResponse
 from src.schemas.metrics import *
 

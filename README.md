@@ -1,5 +1,5 @@
 # FastAPI Ecommerce Data Analysis API
-
+web: poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000
 A robust and scalable REST API built with FastAPI for e-commerce data analysis. It includes secure authentication, background tasks with Celery, high-performance caching with Redis, and a clean, production-ready architecture.
 
 ## ✨ Key Features

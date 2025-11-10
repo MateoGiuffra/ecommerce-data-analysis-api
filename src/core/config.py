@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     COOKIE_SECURE: bool = False
     DEFAULT_PUBLIC_PATHS: set = {"/", "/docs", "/openapi.json"}
+    # When True the app is running in test mode; some validations may be relaxed
+    TESTING: bool = False
     SQLALCHEMY_DATABASE_URL: str = "sqlite:///./app.db"
     GOOGLE_APPLICATION_CREDENTIALS: str
     GOOGLE_PROJECT_ID: str

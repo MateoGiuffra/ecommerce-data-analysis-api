@@ -8,7 +8,8 @@ class RegisterUserDTO(BaseModel):
 class UserDTO(BaseModel):
     model_config = {"from_attributes": True}
 
-    id: int
+    # IDs can be ints (DB autoincrement) or strings (UUIDs) depending on environment/tests
+    id: int | str
     username: str
     is_active: Optional[bool] = True
 

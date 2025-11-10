@@ -7,7 +7,7 @@ from src.repositories.impl.metrics_repository_gspread import MetricsRepositoryGs
 from src.repositories.impl.metrics_repository_local import MetricsRepositoryLocal
 from src.repositories.metrics_repository import MetricsRepository
 from src.services.cache_service import CacheService
-from src.services.metrics_service import MetricsService
+from src.services.metrics.metrics_service import MetricsService
 from src.dependencies.gspread_client import gspread_client
 
 def get_metrics_repository() -> MetricsRepository:

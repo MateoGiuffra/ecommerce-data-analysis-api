@@ -1,5 +1,6 @@
 from src.repositories.metrics_repository import MetricsRepository
 import pandas as pd
+import numpy as np
 from pandas import DataFrame, Series
 from pandas.core.resample import DatetimeIndexResampler
 from src.schemas.metrics import KPIsSummary, Serie, SerieType, TopCountryRevenue, TopCountryRevenueParams
@@ -11,6 +12,9 @@ from src.services.cache_service import CacheService
 from typing import Callable, Awaitable
 from src.aspects.caching import Caching
 from src.aspects.decorators import excluded_from_cache
+import logging
+
+logger = logging.getLogger(__name__)
 
 class MetricsService(metaclass=Caching):
     def __init__(self, metrics_repository: MetricsRepository, cache_service: CacheService, cache_df_ttl_seconds: int):
@@ -35,11 +39,19 @@ class MetricsService(metaclass=Caching):
         Cleans a pandas Series by removing commas and stripping whitespace,
         then converts it to a numeric type. Non-convertible values become 0.
         """
-        series = pd.to_numeric(
-            series.astype(str).str.replace(",", "").str.strip(),
-            errors="coerce"
-        ).fillna(0)
-        return series.astype(float)
+        cleaned = series.astype(str).str.replace(",", "").str.strip()
+
+        numeric = pd.to_numeric(cleaned, errors="coerce")
+
+        numeric = numeric.replace([pd.NA, pd.NaT], np.nan)
+        try:
+            mask_finite = np.isfinite(numeric.values)
+            numeric.loc[~mask_finite] = np.nan
+        except Exception:
+            numeric = numeric.replace([np.inf, -np.inf, float('inf'), -float('inf')], np.nan)
+
+        numeric = numeric.fillna(0.0)
+        return numeric.astype(float)
     
     @excluded_from_cache
     def _process_dataframe(self, df: DataFrame) -> DataFrame:
@@ -47,12 +59,31 @@ class MetricsService(metaclass=Caching):
         if df.empty:
             return df
         df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
         self._validate_columns(df)
+
         df[self.quantity] = self._clean_and_convert_to_numeric(df[self.quantity])
         df[self.unit_price] = self._clean_and_convert_to_numeric(df[self.unit_price])
-        df[self.invoice_date] = pd.to_datetime(df[self.invoice_date])
+
+        # Parse dates safely; coerce invalid parse to NaT and drop those rows
+        df[self.invoice_date] = pd.to_datetime(df[self.invoice_date], errors="coerce")
+        if df[self.invoice_date].isna().any():
+            logger.warning(f"Found {df[self.invoice_date].isna().sum()} rows with invalid {self.invoice_date}; dropping them")
+            df = df[df[self.invoice_date].notna()].copy()
+
         df[self.total_price] = df[self.quantity] * df[self.unit_price]
-        return df.set_index(self.invoice_date)
+        df[self.customer_id] = df[self.customer_id].astype(str).str.strip()
+        df[self.stock_code] = df[self.stock_code].astype(str).str.strip()
+        df[self.invoice_no] = df[self.invoice_no].astype(str).str.strip()
+
+        try:
+            df = df.set_index(self.invoice_date, drop=False)
+            if not isinstance(df.index, pd.DatetimeIndex):
+                df.index = pd.to_datetime(df.index)
+        except Exception as e:
+            logger.exception(f"Failed to set index on dataframe using {self.invoice_date}: {e}")
+
+        return df
 
     @excluded_from_cache
     async def warm_up_dataframe_cache(self) -> None:
@@ -77,6 +108,7 @@ class MetricsService(metaclass=Caching):
     async def get_clean_data_frame(self) -> DataFrame:
         return await self._get_clean_data_frame()()
 
+    @excluded_from_cache
     def _validate_columns(self, df: DataFrame):
         required_columns = [
             self.invoice_no,
@@ -91,7 +123,6 @@ class MetricsService(metaclass=Caching):
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             raise KeyError(f"Missing required columns: {', '.join(missing_columns)}")
-        
 
 
     async def get_kpi_summary(self) -> KPIsSummary:

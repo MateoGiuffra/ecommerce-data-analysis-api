@@ -1,0 +1,1 @@
+En esta carpeta voy a guardar todos los documentos de vision iterativos de ayuda de toda la aplicacion con respecto a los endpoints de metricas. Primero implemente algunos y voy agregando a medida que la aplicacion crece. No tengo un solo documento donde guardo todos los endpoints, tengo varios y cuando termino uno creo uno nuevo.
