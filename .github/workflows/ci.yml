@@ -34,6 +34,25 @@ jobs:
           poetry install --no-interaction --no-ansi
 
       - name: Run tests
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALGORITHM: ${{ secrets.ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+          GOOGLE_PRIVATE_KEY_ID: ${{ secrets.GOOGLE_PRIVATE_KEY_ID }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+          SPREADSHEET_GID: ${{ secrets.SPREADSHEET_GID }}
+          API_KEY: ${{ secrets.API_KEY }}
+          TOKEN_URI: ${{ secrets.TOKEN_URI }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+          CELERY_RESULT_BACKEND: ${{ secrets.CELERY_RESULT_BACKEND }}
+          CACHE_TTL_SECONDS: ${{ secrets.CACHE_TTL_SECONDS }}
+          CACHE_DF_TTL_SECONDS: ${{ secrets.CACHE_DF_TTL_SECONDS }}
         run: |
           poetry run pytest -q
 
@@ -61,5 +80,11 @@ jobs:
           poetry install --no-interaction --no-ansi
 
       - name: Run router-only tests (fast)
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALGORITHM: ${{ secrets.ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
         run: |
           poetry run pytest tests/routers -q

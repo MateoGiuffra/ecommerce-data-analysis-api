@@ -17,7 +17,6 @@ async def get_rfm_analysis(customer_service: CustomerService = Depends(get_custo
     return rfm_page
 
 
-
 @router.get("/top-spenders", summary="Get Top Spenders", response_model=List[Spender])
 async def get_top_spenders(customer_service: CustomerService = Depends(get_customer_service), top_spenders_params: TopSpendersMetricsParams = Depends(get_top_spenders_params)):
     top_spenders: List[Spender] = await customer_service.get_top_spenders(top_spenders_params)
