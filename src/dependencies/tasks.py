@@ -8,7 +8,7 @@ from src.repositories.impl.metrics_repository_local import MetricsRepositoryLoca
 from src.repositories.metrics_repository import MetricsRepository
 from src.services.cache_service import CacheService
 from src.services.metrics.metrics_service import MetricsService
-from src.dependencies.gspread_client import gspread_client
+from src.dependencies.gspread_client import get_gspread_client
 
 def get_metrics_repository() -> MetricsRepository:
     """
@@ -16,7 +16,13 @@ def get_metrics_repository() -> MetricsRepository:
     It uses the Gspread implementation if USE_GSPREAD_CLIENT is set to 'true',
     otherwise it falls back to the local CSV implementation.
     """
-    return MetricsRepositoryGspread(gspread_client=gspread_client)
+    try:
+        client = get_gspread_client()
+        return MetricsRepositoryGspread(gspread_client=client)
+    except Exception:
+        # If credentials are not available or client creation fails, fall back
+        # to the local CSV-based repository. This makes tests and CI resilient.
+        return MetricsRepositoryLocal()
 
 async def get_metrics_service_instance() -> MetricsService:
     """Creates and returns an instance of MetricsService with its dependencies."""

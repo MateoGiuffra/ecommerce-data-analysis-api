@@ -78,4 +78,6 @@ def get_gspread_client() -> Client:
         raise RuntimeError(msg) from exc
 
 
-gspread_client = get_gspread_client()
+# Do not create a global client at import time; callers should call
+# `get_gspread_client()` when they need a client. This avoids import-time
+# failures in CI when credentials aren't available.
